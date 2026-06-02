@@ -11,7 +11,7 @@ import {
   subscribeToBlogAction,
   getEntryCategoriesAction,
   syncBlogCategoriesAction,
-  getBlogsWithSubscriberCountAction 
+  getBlogsWithSubscriberCountAction // 🚀 Injected to populate the filter choices dropdown
 } from "@/app/actions";
 import CommentsSection from "@/components/CommentsSection";
 
@@ -23,8 +23,6 @@ interface JoinedEntry {
   entrytext: string;
   status: string;
   blogtitle: string;
-  ownerid: string;   // Owner's public ID
-  canedit: boolean;  // 🚀 Computed database authorization flag
 }
 
 interface BlogContainerNode {
@@ -32,15 +30,13 @@ interface BlogContainerNode {
   blogtitle: string;
 }
 
-interface BlogEntriesFeedProps {
-  currentUserId: string; // 🚀 Prop injected from your page layout identity bar context
-}
-
-export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps) {
+export default function BlogEntriesFeed() {
   const [entries, setEntries] = useState<JoinedEntry[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // 🚀 ACTIVE CONTAINER FILTER PIPELINE STATES
   const [channels, setChannels] = useState<BlogContainerNode[]>([]);
-  const [activeFilterId, setActiveFilterId] = useState<string>(""); 
+  const [activeFilterId, setActiveFilterId] = useState<string>(""); // Empty string means "Global Stream"
 
   // Interaction States
   const [viewingPost, setViewingPost] = useState<JoinedEntry | null>(null);
@@ -53,37 +49,42 @@ export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps)
   const [editStatus, setEditStatus] = useState("D");
   const [editingTags, setEditingTags] = useState("");
 
+  // State Dictionary tracking unique email strings per card entry ID
   const [subscriptionEmails, setSubscriptionEmails] = useState<Record<number, string>>({});
 
-  // Fetch feed content passing down the active session context identity string
+  // Fetch feed content (Modified to support context-aware channel filtering inputs)
   async function fetchFeed(filterId?: string) {
     setLoading(true);
     const numericId = filterId && filterId !== "" ? Number(filterId) : undefined;
     
-    // 🚀 Supply currentUserId to evaluate authorizations on query execution
-    const response = await getBlogEntriesAction(numericId, currentUserId);
+    const response = await getBlogEntriesAction(numericId);
     if (response.success && response.data) {
       setEntries(response.data as JoinedEntry[]);
     }
     setLoading(false);
   }
 
+  // Load initial form dataset matrices and dropdown lists on layout load
   useEffect(() => {
     async function initFeedWorkspace() {
+      // 1. Load active channels list for the filter options selection box
       const channelsRes = await getBlogsWithSubscriberCountAction();
       if (channelsRes.success && channelsRes.data) {
         setChannels(channelsRes.data as BlogContainerNode[]);
       }
+      // 2. Fetch global baseline feeds entries
       await fetchFeed();
     }
     initFeedWorkspace();
-  }, [currentUserId]); // Re-run calculations if identity bar state toggles
+  }, []);
 
+  // Trigger data-refresh loops whenever a user selects a alternative channel stream node filter
   const handleFilterChange = async (targetId: string) => {
     setActiveFilterId(targetId);
     await fetchFeed(targetId);
   };
 
+  // 1. DELETE ACTION HANDLER
   const handleDelete = async (entryId: number) => {
     if (!confirm("Are you sure you want to permanently purge this entry from PostgreSQL?")) return;
     const res = await deleteBlogEntryAction(entryId);
@@ -94,6 +95,7 @@ export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps)
     }
   };
 
+  // 2. TRIGGER UPDATE EDIT MODE
   const startEditing = async (post: JoinedEntry) => {
     setEditingPostId(post.entryid);
     setEditTitle(post.entrytitle);
@@ -109,6 +111,7 @@ export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps)
     }
   };
 
+  // 3. SUBMIT UPDATE RUNTIME
   const handleUpdateSave = async (entryId: number, blogId: number) => {
     const res = await updateBlogEntryAction(entryId, {
       entrytitle: editTitle,
@@ -133,12 +136,15 @@ export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps)
     }
   };
 
+  // 4. AUDIENCE SUBSCRIPTION HANDLER
   const handleSubscribeSubmit = async (entryId: number, blogId: number) => {
     const targetEmail = subscriptionEmails[entryId] || "";
+    
     if (!targetEmail.includes("@") || targetEmail.trim().length < 5) {
       alert("Please enter a valid structure email address.");
       return;
     }
+
     const res = await subscribeToBlogAction(blogId, targetEmail);
     if (res.success) {
       alert("Success! Added email to notification distribution pipelines.");
@@ -151,22 +157,21 @@ export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps)
   return (
     <div className="max-w-6xl mx-auto p-6">
       
-      {/* Header Panel with Dropdown Filters */}
+      {/* 🚀 UPGRADED HEADER PANEL: WITH STREAM PIPELINE FILTER MATRIX CONTROLS */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 border-b pb-4">
         <div>
           <h3 className="text-xl font-bold text-gray-800 tracking-tight">Live Publishing Feed Pipeline</h3>
-          <p className="text-xs text-gray-400 mt-0.5 font-mono">
-            Acting Identity Session: <span className="text-blue-600 font-bold">@{currentUserId || "anonymous"}</span>
-          </p>
+          <p className="text-xs text-gray-400 mt-0.5 font-mono">Consolidated relational database distribution node logs</p>
         </div>
         
         <div className="flex items-center gap-3">
+          {/* Channel Pipeline Stream Filter Dropdown */}
           <div className="flex items-center space-x-1.5">
             <span className="text-xs font-bold text-gray-500 font-mono uppercase">Stream:</span>
             <select 
               value={activeFilterId} 
               onChange={(e) => handleFilterChange(e.target.value)}
-              className="text-xs border rounded-lg p-2 font-bold bg-white text-gray-700 shadow-sm focus:outline-none"
+              className="text-xs border rounded-lg p-2 font-bold bg-white text-gray-700 shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="">🌍 All Channels Combined (Global Dump)</option>
               {channels.map((ch) => (
@@ -176,13 +181,17 @@ export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps)
               ))}
             </select>
           </div>
-          <button onClick={() => fetchFeed(activeFilterId)} className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg font-bold text-gray-600 transition shadow-sm">
+
+          <button 
+            onClick={() => fetchFeed(activeFilterId)} 
+            className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg font-bold text-gray-600 transition shadow-sm"
+          >
             🔄 Sync Node
           </button>
         </div>
       </div>
       
-      {/* Feed Cards Display Render Grid */}
+      {/* Feed Cards Display Render Grid View Layout */}
       {loading ? (
         <p className="text-center text-sm text-gray-400 my-12 animate-pulse font-mono">Parsing system feed streams...</p>
       ) : entries.length === 0 ? (
@@ -196,14 +205,10 @@ export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps)
             const currentEmailValue = subscriptionEmails[post.entryid] || "";
 
             return (
-              <div key={post.entryid} className="flex flex-col bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden min-h-[450px]">
-                
+              <div key={post.entryid} className="flex flex-col bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden min-h-[450px] hover:shadow-md transition duration-200">
                 {/* Header Meta Block */}
                 <div className="p-4 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
-                  <div className="flex flex-col">
-                    <span className="text-xs font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-0.5 rounded">📁 {post.blogtitle}</span>
-                    <span className="text-[9px] font-mono text-gray-400 mt-0.5">Owner: @{post.ownerid}</span>
-                  </div>
+                  <span className="text-xs font-bold text-blue-600 uppercase tracking-wider bg-blue-50 px-2 py-1 rounded">📁 {post.blogtitle}</span>
                   {isEditing ? (
                     <select value={editStatus} onChange={(e) => setEditStatus(e.target.value)} className="text-xs border rounded p-1 font-bold">
                       <option value="D">Draft</option>
@@ -239,7 +244,7 @@ export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps)
                       <textarea value={editContext} onChange={(e) => setEditContext(e.target.value)} className="w-full flex-1 min-h-[150px] text-xs font-mono border p-2 rounded bg-gray-50 text-gray-800 shadow-inner" placeholder="Markdown / HTML Content" />
                     </div>
                   ) : (
-                    /* Read Only Feed Card Face */
+                    /* Read Only Feed Card Face Canvas Rendering */
                     <div className="flex-1 flex flex-col">
                       <h4 className="text-lg font-bold text-gray-900 mb-1 line-clamp-2">{post.entrytitle}</h4>
                       {post.entrysubtitle && <p className="text-sm text-gray-500 italic mb-3 line-clamp-1">{post.entrysubtitle}</p>}
@@ -260,9 +265,14 @@ export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps)
                             value={currentEmailValue}
                             onChange={(e) => setSubscriptionEmails(prev => ({ ...prev, [post.entryid]: e.target.value }))}
                             placeholder="name@domain.com" 
-                            className="flex-1 text-xs border border-gray-200 rounded-lg p-2 bg-white focus:outline-none"
+                            className="flex-1 text-xs border border-gray-200 rounded-lg p-2 bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
                           />
-                          <button onClick={() => handleSubscribeSubmit(post.entryid, post.blogid)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 rounded-lg transition">Join</button>
+                          <button 
+                            onClick={() => handleSubscribeSubmit(post.entryid, post.blogid)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 rounded-lg transition"
+                          >
+                            Join
+                          </button>
                         </div>
                       </div>
                     </div>
@@ -278,21 +288,11 @@ export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps)
                     </div>
                   ) : (
                     <>
-                      {/* 🚀 CRITICAL UI SECURITY CHECKS ENFORCED HERE */}
-                      {post.canedit ? (
-                        <>
-                          <button onClick={() => handleDelete(post.entryid)} className="text-red-500 hover:text-red-700 font-bold tracking-tight transition">🗑️ Delete</button>
-                          <div className="flex gap-3">
-                            <button onClick={() => startEditing(post)} className="text-gray-600 hover:text-gray-900 font-bold transition">✏️ Edit</button>
-                            <button onClick={() => setViewingPost(post)} className="text-blue-600 hover:text-blue-700 font-bold transition">Analyze Node →</button>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <span className="text-gray-400 italic text-[11px] font-mono">🔒 Read-Only Node Access</span>
-                          <button onClick={() => setViewingPost(post)} className="text-blue-600 hover:text-blue-700 font-bold transition">Analyze Node →</button>
-                        </>
-                      )}
+                      <button onClick={() => handleDelete(post.entryid)} className="text-red-500 hover:text-red-700 font-bold tracking-tight transition">🗑️ Delete</button>
+                      <div className="flex gap-3">
+                        <button onClick={() => startEditing(post)} className="text-gray-600 hover:text-gray-900 font-bold transition">✏️ Edit</button>
+                        <button onClick={() => setViewingPost(post)} className="text-blue-600 hover:text-blue-700 font-bold transition">Analyze Node →</button>
+                      </div>
                     </>
                   )}
                 </div>
@@ -303,7 +303,7 @@ export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps)
         </div>
       )}
 
-      {/* Modal Inspector Overlay */}
+      {/* --- MODAL OVERLAY INPSECTOR FRAME FRAMEWORK --- */}
       {viewingPost && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl border">
@@ -314,13 +314,16 @@ export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps)
               </div>
               <button onClick={() => setViewingPost(null)} className="text-gray-400 hover:text-white text-xl font-bold transition">&times;</button>
             </div>
+            
             <div className="p-6 overflow-y-auto space-y-4">
               <div className="border-b pb-3">
                 <p className="text-xs font-bold text-blue-600 uppercase tracking-wide">Channel: {viewingPost.blogtitle}</p>
                 <h2 className="text-2xl font-black text-gray-900 mt-1">{viewingPost.entrytitle}</h2>
                 {viewingPost.entrysubtitle && <p className="text-md text-gray-500 italic mt-1">{viewingPost.entrysubtitle}</p>}
               </div>
+
               <div>
+                <label className="text-xs font-bold text-gray-400 block mb-3 uppercase tracking-wider font-mono">Payload Manifest (Rendered output)</label>
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                   <article className="prose prose-blue max-w-none text-gray-800 leading-relaxed overflow-x-hidden">
                     <ReactMarkdown rehypePlugins={[rehypeRaw]}>
@@ -329,10 +332,15 @@ export default function BlogEntriesFeed({ currentUserId }: BlogEntriesFeedProps)
                   </article>
                 </div>
               </div>
+
+              {/* Engagement Comments Segment Mounting Connector */}
               <CommentsSection blogId={viewingPost.blogid} entryId={viewingPost.entryid} />
             </div>
+
             <div className="p-4 bg-gray-50 border-t flex justify-end">
-              <button onClick={() => setViewingPost(null)} className="bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold px-5 py-2.5 rounded-lg transition shadow-sm">Close Inspector Frame</button>
+              <button onClick={() => setViewingPost(null)} className="bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold px-5 py-2.5 rounded-lg transition shadow-sm">
+                Close Inspector Frame
+              </button>
             </div>
           </div>
         </div>

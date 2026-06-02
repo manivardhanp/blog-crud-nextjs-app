@@ -77,22 +77,46 @@ export async function createEntryAction(values: {
 /**
  * ACTION 3: Fetches all post entries combined with their parent blog metadata
  */
-export async function getBlogEntriesAction() {
+export async function getBlogEntriesAction(selectedBlogId?: number) {
   try {
+   if (selectedBlogId) {
     const data = await db
-      .select({
-        entryid: blogsEntries.entryid,
-        blogid: blogsEntries.blogid, // 👈 ADD THIS COLUMN SELECTION HERE
-        entrytitle: blogsEntries.entrytitle,
-        entrysubtitle: blogsEntries.entrysubtitle,
-        entrytext: blogsEntries.entrytext,
-        status: blogsEntries.status,
-        blogtitle: blogs.blogtitle,
-      })
-      .from(blogsEntries)
-      .innerJoin(blogs, eq(blogsEntries.blogid, blogs.blogid));
+    .select({
+      entryid: blogsEntries.entryid,
+      blogid: blogsEntries.blogid,
+      entrytitle: blogsEntries.entrytitle,
+      entrysubtitle: blogsEntries.entrysubtitle,
+      entrytext: blogsEntries.entrytext,
+      status: blogsEntries.status,
+      blogtitle: blogs.blogtitle,
+    })
+    .from(blogsEntries)
+    .innerJoin(blogs, eq(blogsEntries.blogid, blogs.blogid))
+    .leftJoin(blogsMerge, eq(blogsEntries.blogid, blogsMerge.blogid))
+    .where(
+      or(
+        eq(blogsEntries.blogid, selectedBlogId),          // Own channel posts
+        eq(blogsMerge.mergewithblogid, selectedBlogId)    // Merged agent posts
+      )
+    );
 
-    return { success: true, data };
+  return { success: true, data };
+  }
+
+  const data = await db
+  .select({
+    entryid: blogsEntries.entryid,
+    blogid: blogsEntries.blogid,
+    entrytitle: blogsEntries.entrytitle,
+    entrysubtitle: blogsEntries.entrysubtitle,
+    entrytext: blogsEntries.entrytext,
+    status: blogsEntries.status,
+    blogtitle: blogs.blogtitle,
+  })
+  .from(blogsEntries)
+  .innerJoin(blogs, eq(blogsEntries.blogid, blogs.blogid));
+
+return { success: true, data };
   } catch (error: any) {
     console.error("Failed to parse publishing feeds:", error);
     return { success: false, error: error.message, data: [] };
