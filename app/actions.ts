@@ -162,7 +162,7 @@ export async function updateBlogEntryAction(
 }
 
 /**
- * ACTION 7: Adds a reader's email to a blog's notification distribution list
+ * ACTION 6: Adds a reader's email to a blog's notification distribution list
  */
 export async function subscribeToBlogAction(blogId: number, email: string) {
   try {
@@ -178,7 +178,7 @@ export async function subscribeToBlogAction(blogId: number, email: string) {
 }
 
 /**
- * ACTION 8: Synchronizes co-authors using the destructive overwrite pattern (Delete + Re-insert)
+ * ACTION 7: Synchronizes co-authors using the destructive overwrite pattern (Delete + Re-insert)
  */
 export async function syncBlogAgentsAction(blogId: number, agentPublicIds: string[]) {
   try {
@@ -203,7 +203,7 @@ export async function syncBlogAgentsAction(blogId: number, agentPublicIds: strin
 }
 
 /**
- * ACTION 9: Syncs company blog feed merging destinations (Delete + Re-insert transaction loop)
+ * ACTION 8: Syncs company blog feed merging destinations (Delete + Re-insert transaction loop)
  * Mandated: Directs source agent posts to replicate into company channel feeds.
  */
 export async function syncBlogMergeAction(blogId: number, mergeWithBlogIds: number[]) {
@@ -230,7 +230,7 @@ export async function syncBlogMergeAction(blogId: number, mergeWithBlogIds: numb
 
 
 /**
- * ACTION 10: Creates a new master category type label
+ * ACTION 9: Creates a new master category type label
  */
 export async function createCategoryTypeAction(category: string, publicId: string = "global") {
   try {
@@ -251,7 +251,7 @@ export async function createCategoryTypeAction(category: string, publicId: strin
 }
 
 /**
- * ACTION 11: Fetches all available global category configurations
+ * ACTION 10: Fetches all available global category configurations
  */
 export async function getCategoryTypesAction() {
   try {
@@ -264,7 +264,7 @@ export async function getCategoryTypesAction() {
 }
 
 /**
- * ACTION 12: Syncs a blog container to chosen categories (Delete + Re-insert transaction loop)
+ * ACTION 11: Syncs a blog container to chosen categories (Delete + Re-insert transaction loop)
  */
 export async function syncBlogCategoriesAction(blogId: number, entryId: number, categoryNames: string[]) {
   try {
@@ -350,7 +350,7 @@ export async function getEntryCategoriesAction(entryId: number) {
 }
 
 /**
- * ACTION 16: Stages a brand-new reader comment string record to PostgreSQL
+ * ACTION 15: Stages a brand-new reader comment string record to PostgreSQL
  */
 export async function createCommentAction(payload: { blogid: number; entryid: number; author: string; commenttext: string }) {
   try {
@@ -373,7 +373,7 @@ export async function createCommentAction(payload: { blogid: number; entryid: nu
 }
 
 /**
- * ACTION 17: Fetches comments for an entry, sorted chronologically (Newest First)
+ * ACTION 16: Fetches comments for an entry, sorted chronologically (Newest First)
  */
 export async function getCommentsForEntryAction(entryId: number) {
   try {

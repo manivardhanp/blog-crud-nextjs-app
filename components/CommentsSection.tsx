@@ -35,8 +35,6 @@ export default function CommentsSection({ blogId, entryId }: CommentsSectionProp
   return (
     <div className="mt-6 border-t pt-6 space-y-6">
       <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider font-mono">Engagement Loop & Threads</h3>
-
-      {/* Write Comment Form Workspace */}
       <Formik
         initialValues={{ author: "", commenttext: "" }}
         validationSchema={CommentValidationSchema}
@@ -50,7 +48,7 @@ export default function CommentsSection({ blogId, entryId }: CommentsSectionProp
 
           if (res.success) {
             resetForm();
-            await loadComments(); // Pull down fresh rows instantly
+            await loadComments();
           } else {
             alert(`Comment transaction rejected: ${res.error}`);
           }
@@ -102,9 +100,7 @@ export default function CommentsSection({ blogId, entryId }: CommentsSectionProp
           comments.map((c) => (
             <div key={c.commentid} className="p-3 bg-white border rounded-lg shadow-sm text-xs">
               <div className="flex justify-between items-center text-gray-400 font-mono text-[10px] mb-1">
-                {/* 🚀 FIXED: Changed from c.author to c.authorname */}
                 <span className="font-bold text-gray-700">👤 {c.authorname}</span>
-                {/* 🚀 FIXED: Changed from c.createdat to c.commentdatetime */}
                 <span>{c.commentdatetime ? new Date(c.commentdatetime).toLocaleString() : ""}</span>
               </div>
               <p className="text-gray-600 leading-relaxed bg-gray-50/40 p-1.5 rounded font-mono text-[11px] whitespace-pre-wrap">{c.commenttext}</p>

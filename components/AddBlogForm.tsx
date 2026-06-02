@@ -9,8 +9,8 @@ import {
   getCategoryTypesAction, 
   createCategoryTypeAction, 
   syncBlogCategoriesAction,
-  getBlogsWithSubscriberCountAction, // Fetch channels for merging list context
-  syncBlogMergeAction               // Run the destructive merging pipeline action
+  getBlogsWithSubscriberCountAction,
+  syncBlogMergeAction
 } from "@/app/actions";
 
 const BlogValidationSchema = Yup.object().shape({
@@ -27,12 +27,10 @@ export default function AddBlogForm() {
   const [loading, setLoading] = useState(false);
   const [coAuthorsInput, setCoAuthorsInput] = useState("");
   
-  // Taxonomy & Merge States
   const [categoriesList, setCategoriesList] = useState<any[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [newCategoryName, setNewCategoryName] = useState("");
   
-  // 🚀 NEW: State tracking company channels available for aggregation feeds
   const [availableBlogs, setAvailableBlogs] = useState<SimpleBlogNode[]>([]);
   const [selectedMergeBlogs, setSelectedMergeBlogs] = useState<number[]>([]);
 
@@ -40,7 +38,6 @@ export default function AddBlogForm() {
     const catRes = await getCategoryTypesAction();
     if (catRes.success && catRes.data) setCategoriesList(catRes.data);
     
-    // Load existing channels to populate the feed merge selector block
     const blogRes = await getBlogsWithSubscriberCountAction();
     if (blogRes.success && blogRes.data) setAvailableBlogs(blogRes.data as SimpleBlogNode[]);
   }
@@ -67,7 +64,6 @@ export default function AddBlogForm() {
     }
   };
 
-  // 🚀 NEW: Checkbox toggle handler for company target feeds
   const handleMergeCheckboxChange = (targetBlogId: number, checked: boolean) => {
     if (checked) {
       setSelectedMergeBlogs(prev => [...prev, targetBlogId]);
@@ -80,7 +76,6 @@ export default function AddBlogForm() {
     <div className="max-w-2xl mx-auto p-6 bg-white shadow-md rounded-lg border border-gray-200">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Create Blog Channel Container</h2>
       
-      {/* Quick Category Panel */}
       <div className="mb-6 p-4 bg-gray-50 rounded-xl border border-gray-200">
         <label className="block text-xs font-bold text-gray-600 uppercase mb-2">Create New Global Category Tag</label>
         <div className="flex gap-2">
@@ -125,7 +120,7 @@ export default function AddBlogForm() {
               await syncBlogCategoriesAction(newBlogId, 0, selectedCategories);
             }
 
-            // 🚀 3. NEW: Process Feed Merging Rules (blogs_merge)
+            // 3. Process Feed Merging Rules (blogs_merge)
             if (selectedMergeBlogs.length > 0) {
               await syncBlogMergeAction(newBlogId, selectedMergeBlogs);
             }
@@ -157,7 +152,6 @@ export default function AddBlogForm() {
               <ErrorMessage name="publicid" component="div" className="text-red-500 text-xs mt-1" />
             </div>
 
-            {/* Taxonomy Checkbox Matrix */}
             <div>
               <label className="block text-sm font-semibold mb-2 text-gray-600">Select Channel Classifications</label>
               <div className="grid grid-cols-2 gap-2 bg-gray-50/50 p-3 rounded-lg border">
@@ -170,7 +164,6 @@ export default function AddBlogForm() {
               </div>
             </div>
 
-            {/* 🚀 NEW UI SECTION: COMPANY BLOG MERGING SELECTOR (blogs_merge) */}
             <div>
               <label className="block text-sm font-semibold mb-1 text-gray-600">Merge Feed Into Corporate Channels</label>
               <p className="text-gray-400 text-[11px] mb-2">Select which company-wide destination nodes should automatically mirror entries published here.</p>
@@ -193,7 +186,6 @@ export default function AddBlogForm() {
               )}
             </div>
 
-            {/* Feature Flags Configuration Panel */}
             <div className="bg-gray-50 p-4 rounded border border-gray-100 space-y-3">
               <h3 className="text-sm font-bold text-gray-600 uppercase tracking-wider">Feature Flags Configuration</h3>
               <label className="flex items-center space-x-2 cursor-pointer">

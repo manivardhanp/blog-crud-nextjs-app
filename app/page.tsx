@@ -7,7 +7,6 @@ import AddBlogEntryForm from "@/components/AddBlogEntryForm";
 import BlogEntriesFeed from "@/components/BlogEntriesFeed";
 
 export default function Home() {
-  // Simple view switcher state: defaults to showing the Blog Containers tab
   const [activeTab, setActiveTab] = useState<"blogs" | "entries">("blogs");
 
   return (
@@ -22,7 +21,6 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Dynamic Navigation Tab Bar */}
       <div className="max-w-md mx-auto flex bg-white p-1.5 rounded-xl shadow-sm border border-gray-200 mb-10">
         <button
           onClick={() => setActiveTab("blogs")}
@@ -46,7 +44,6 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Conditional Rendering Context */}
       <div className="max-w-4xl mx-auto transition-all duration-300">
         {activeTab === "blogs" ? (
           <div className="animate-fadeIn space-y-8">

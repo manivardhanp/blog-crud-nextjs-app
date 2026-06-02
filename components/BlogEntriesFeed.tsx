@@ -34,25 +34,20 @@ export default function BlogEntriesFeed() {
   const [entries, setEntries] = useState<JoinedEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 🚀 ACTIVE CONTAINER FILTER PIPELINE STATES
   const [channels, setChannels] = useState<BlogContainerNode[]>([]);
   const [activeFilterId, setActiveFilterId] = useState<string>(""); // Empty string means "Global Stream"
 
-  // Interaction States
   const [viewingPost, setViewingPost] = useState<JoinedEntry | null>(null);
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
   
-  // Inline Form States for Updating
   const [editTitle, setEditTitle] = useState("");
   const [editSubtitle, setEditSubtitle] = useState("");
   const [editContext, setEditContext] = useState("");
   const [editStatus, setEditStatus] = useState("D");
   const [editingTags, setEditingTags] = useState("");
 
-  // State Dictionary tracking unique email strings per card entry ID
   const [subscriptionEmails, setSubscriptionEmails] = useState<Record<number, string>>({});
 
-  // Fetch feed content (Modified to support context-aware channel filtering inputs)
   async function fetchFeed(filterId?: string) {
     setLoading(true);
     const numericId = filterId && filterId !== "" ? Number(filterId) : undefined;
@@ -64,7 +59,6 @@ export default function BlogEntriesFeed() {
     setLoading(false);
   }
 
-  // Load initial form dataset matrices and dropdown lists on layout load
   useEffect(() => {
     async function initFeedWorkspace() {
       // 1. Load active channels list for the filter options selection box
@@ -157,15 +151,12 @@ export default function BlogEntriesFeed() {
   return (
     <div className="max-w-6xl mx-auto p-6">
       
-      {/* 🚀 UPGRADED HEADER PANEL: WITH STREAM PIPELINE FILTER MATRIX CONTROLS */}
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 border-b pb-4">
         <div>
           <h3 className="text-xl font-bold text-gray-800 tracking-tight">Live Publishing Feed Pipeline</h3>
-          <p className="text-xs text-gray-400 mt-0.5 font-mono">Consolidated relational database distribution node logs</p>
         </div>
         
         <div className="flex items-center gap-3">
-          {/* Channel Pipeline Stream Filter Dropdown */}
           <div className="flex items-center space-x-1.5">
             <span className="text-xs font-bold text-gray-500 font-mono uppercase">Stream:</span>
             <select 
@@ -186,7 +177,7 @@ export default function BlogEntriesFeed() {
             onClick={() => fetchFeed(activeFilterId)} 
             className="text-xs bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-lg font-bold text-gray-600 transition shadow-sm"
           >
-            🔄 Sync Node
+            🔄 Refresh
           </button>
         </div>
       </div>
@@ -222,7 +213,6 @@ export default function BlogEntriesFeed() {
                   )}
                 </div>
 
-                {/* Core Body Section */}
                 <div className="p-5 flex-1 flex flex-col">
                   {isEditing ? (
                     /* Inline Update Editor Panel */
@@ -244,7 +234,6 @@ export default function BlogEntriesFeed() {
                       <textarea value={editContext} onChange={(e) => setEditContext(e.target.value)} className="w-full flex-1 min-h-[150px] text-xs font-mono border p-2 rounded bg-gray-50 text-gray-800 shadow-inner" placeholder="Markdown / HTML Content" />
                     </div>
                   ) : (
-                    /* Read Only Feed Card Face Canvas Rendering */
                     <div className="flex-1 flex flex-col">
                       <h4 className="text-lg font-bold text-gray-900 mb-1 line-clamp-2">{post.entrytitle}</h4>
                       {post.entrysubtitle && <p className="text-sm text-gray-500 italic mb-3 line-clamp-1">{post.entrysubtitle}</p>}
@@ -291,7 +280,7 @@ export default function BlogEntriesFeed() {
                       <button onClick={() => handleDelete(post.entryid)} className="text-red-500 hover:text-red-700 font-bold tracking-tight transition">🗑️ Delete</button>
                       <div className="flex gap-3">
                         <button onClick={() => startEditing(post)} className="text-gray-600 hover:text-gray-900 font-bold transition">✏️ Edit</button>
-                        <button onClick={() => setViewingPost(post)} className="text-blue-600 hover:text-blue-700 font-bold transition">Analyze Node →</button>
+                        <button onClick={() => setViewingPost(post)} className="text-blue-600 hover:text-blue-700 font-bold transition">View →</button>
                       </div>
                     </>
                   )}
@@ -309,7 +298,7 @@ export default function BlogEntriesFeed() {
           <div className="bg-white rounded-2xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl border">
             <div className="p-5 bg-gray-900 text-white flex justify-between items-center">
               <div>
-                <span className="text-xs uppercase font-mono bg-blue-600 px-2 py-0.5 rounded mr-2 tracking-widest font-bold">Node Reader</span>
+                <span className="text-xs uppercase font-mono bg-blue-600 px-2 py-0.5 rounded mr-2 tracking-widest font-bold">Reader</span>
                 <span className="text-xs text-gray-400">Context Key: #{viewingPost.entryid}</span>
               </div>
               <button onClick={() => setViewingPost(null)} className="text-gray-400 hover:text-white text-xl font-bold transition">&times;</button>
@@ -323,7 +312,7 @@ export default function BlogEntriesFeed() {
               </div>
 
               <div>
-                <label className="text-xs font-bold text-gray-400 block mb-3 uppercase tracking-wider font-mono">Payload Manifest (Rendered output)</label>
+                <label className="text-xs font-bold text-gray-400 block mb-3 uppercase tracking-wider font-mono">Rendered output</label>
                 <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
                   <article className="prose prose-blue max-w-none text-gray-800 leading-relaxed overflow-x-hidden">
                     <ReactMarkdown rehypePlugins={[rehypeRaw]}>
@@ -333,13 +322,12 @@ export default function BlogEntriesFeed() {
                 </div>
               </div>
 
-              {/* Engagement Comments Segment Mounting Connector */}
               <CommentsSection blogId={viewingPost.blogid} entryId={viewingPost.entryid} />
             </div>
 
             <div className="p-4 bg-gray-50 border-t flex justify-end">
               <button onClick={() => setViewingPost(null)} className="bg-gray-900 hover:bg-gray-800 text-white text-xs font-bold px-5 py-2.5 rounded-lg transition shadow-sm">
-                Close Inspector Frame
+                Close
               </button>
             </div>
           </div>
