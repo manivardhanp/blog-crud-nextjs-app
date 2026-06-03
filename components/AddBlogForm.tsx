@@ -130,7 +130,7 @@ export default function AddBlogForm() {
             setSelectedCategories([]);
             setSelectedMergeBlogs([]);
             resetForm();
-            loadFormContextData(); // Reload mapping dropdown arrays
+            loadFormContextData();
           } else {
             alert(`Database Error: ${response.error}`);
           }

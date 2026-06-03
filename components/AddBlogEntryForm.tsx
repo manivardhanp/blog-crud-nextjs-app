@@ -52,7 +52,7 @@ export default function AddBlogEntryForm() {
           entryallowcomments: "F", 
           entrycommentdisabledays: 0, 
           featuredimage: null as File | null, 
-          rawTags: "", // 🌟 ADDED TAXONOMY LAYER: String context cache parameter
+          rawTags: "",
         }}
         validationSchema={EntryValidationSchema}
         onSubmit={async (values, { setSubmitting, resetForm }) => {
